@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./services/web
+    command: python manage.py run -h 0.0.0.0
+    volumes:
+      - ./services/web/:/usr/src/app/
+    ports:
+      - 1111:5000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    build: ./services/postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./services/postgres/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    environment:
+      - POSTGRES_USER=twitter
+      - POSTGRES_PASSWORD=twitter
+      - POSTGRES_DB=twitter_dev
+    ports:
+      - 9876:5432 
+volumes:
+  postgres_data:
+  
