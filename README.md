@@ -4,7 +4,7 @@
 
 ## Overview
 
-A CRUD web application inspired by Twitter, built using the Instagram tech stack.
+A Final Project for Big Data, where we create a twitter-clone using instagram text stack. This project summarizes thentire course, using every skill we got from labs, homeworks, and quizzes.
 
 ## Tech Stack
 
