@@ -1,11 +1,10 @@
 version: '3.8'
-
 services:
   web:
-    build:
-      context: ./services/web
-      dockerfile: Dockerfile.prod
+    build: ./services/web
     command: gunicorn --bind 0.0.0.0:5000 manage:app
+    volumes:
+      - ./services/web/:/usr/src/app/
     env_file:
       - ./.env.prod
     depends_on:
@@ -17,16 +16,13 @@ services:
       - ./services/postgres/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     env_file:
       - ./.env.prod.db
-
+    ports:
+      - 9877:5432
   nginx:
-     build: ./services/nginx
-     volumes:
-        - static_volume:/home/app/web/project/static
-        - media_volume:/home/app/web/project/media
-     ports:
-       - 1111:80
-     depends_on:
-         - web
-
+    build: ./services/nginx
+    ports:
+      - 1112:80
+    depends_on:
+      - web
 volumes:
   postgres_data_prod:

@@ -8,15 +8,22 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: setup python
+    - uses: actions/checkout@v3
+
+    - name: build and run containers
       run: |
-        pip3 install -r requirements.txt
-    - name: docker
-      run: |
-        git submodule init
-        git submodule update
         docker compose up -d --build
         docker ps -a
         sleep 20
-        ./load_tweets_parallel.sh
+
+    - name: check web container is running
+      run: |
+        docker compose ps | grep web | grep Up
+
+    - name: check db container is running
+      run: |
+        docker compose ps | grep db | grep Up
+
+    - name: check home page returns 200
+      run: |
+        curl -f http://localhost:1111
