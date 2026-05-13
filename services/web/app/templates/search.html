@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Search</h2>
+<form method="GET">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search tweets...">
+    <button type="submit">Search</button>
+</form>
+{% for username, text, created_at in messages %}
+<div class="message">
+    <span class="username">@{{ username }}</span>
+    <span class="timestamp">{{ created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    <p>{{ text }}</p>
+</div>
+{% endfor %}
+{% endblock %}

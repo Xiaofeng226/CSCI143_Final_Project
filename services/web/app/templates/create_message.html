@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Post a Tweet</h2>
+<form method="POST">
+    <textarea name="text" rows="4" placeholder="What's happening?" maxlength="280" required></textarea>
+    <button type="submit">Tweet</button>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Clone</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        nav a { margin-right: 15px; }
+        .message { border-bottom: 1px solid #ccc; padding: 10px 0; }
+        .username { font-weight: bold; }
+        .timestamp { color: gray; font-size: 0.85em; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        button { padding: 8px 16px; }
+        .flash { color: red; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/search">Search</a>
+        <a href="/create_message">Post</a>
+        {% if session.user_id %}
+            <a href="/logout">Logout ({{ session.username }})</a>
+        {% else %}
+            <a href="/login">Login</a>
+            <a href="/create_user">Register</a>
+        {% endif %}
+    </nav>
+    <hr>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <p class="flash">{{ msg }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</body>
+</html>

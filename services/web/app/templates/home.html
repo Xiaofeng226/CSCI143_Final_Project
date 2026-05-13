@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Recent Tweets</h2>
+{% for username, text, created_at in messages %}
+<div class="message">
+    <span class="username">@{{ username }}</span>
+    <span class="timestamp">{{ created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    <p>{{ text }}</p>
+</div>
+{% endfor %}
+<br>
+{% if page > 1 %}
+    <a href="/?page={{ page - 1 }}">← Previous</a>
+{% endif %}
+<a href="/?page={{ page + 1 }}">Next →</a>
+{% endblock %}
