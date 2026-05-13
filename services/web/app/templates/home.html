@@ -4,7 +4,7 @@
 {% for username, text, created_at in messages %}
 <div class="message">
     <span class="username">@{{ username }}</span>
-    <span class="timestamp">{{ created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    <span class="timestamp">{{ created_at.strftime('%Y-%m-%d %H:%M') if created_at else '' }}</span>
     <p>{{ text }}</p>
 </div>
 {% endfor %}

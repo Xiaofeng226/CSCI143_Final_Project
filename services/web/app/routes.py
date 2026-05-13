@@ -15,7 +15,13 @@ def home():
     offset = (page - 1) * 20
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT username, text, messages.created_at FROM messages JOIN users ON messages.user_id = users.id ORDER BY messages.created_at DESC LIMIT 20 OFFSET %s;", (offset,))
+    cur.execute("""
+        SELECT users.screen_name, tweets.text, tweets.created_at
+        FROM tweets
+        JOIN users ON tweets.id_users = users.id_users
+        ORDER BY tweets.created_at DESC
+        LIMIT 20 OFFSET %s;
+    """, (offset,))
     messages = cur.fetchall()
     cur.close()
     conn.close()
@@ -28,7 +34,7 @@ def login():
         password = request.form["password"]
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT id, password_hash FROM users WHERE username = %s;", (username,))
+        cur.execute("SELECT id, password_hash FROM app_users WHERE username = %s;", (username,))
         user = cur.fetchone()
         cur.close()
         conn.close()
@@ -56,7 +62,7 @@ def create_user():
         password_hash = generate_password_hash(password)
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s);", (username, password_hash))
+        cur.execute("INSERT INTO app_users (username, password_hash) VALUES (%s, %s);", (username, password_hash))
         conn.commit()
         cur.close()
         conn.close()
@@ -71,7 +77,15 @@ def create_message():
         text = request.form["text"]
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("INSERT INTO messages (user_id, text) VALUES (%s, %s);", (session["user_id"], text))
+        cur.execute("""
+            INSERT INTO tweets (id_tweets, id_users, created_at, text)
+            VALUES (
+                (SELECT COALESCE(MAX(id_tweets), 0) + 1 FROM tweets),
+                (SELECT id_users FROM app_users WHERE id = %s),
+                NOW(),
+                %s
+            );
+        """, (session["user_id"], text))
         conn.commit()
         cur.close()
         conn.close()
@@ -85,7 +99,14 @@ def search():
     if query:
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT username, text, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE to_tsvector('english', text) @@ plainto_tsquery('english', %s) ORDER BY messages.created_at DESC LIMIT 20;", (query,))
+        cur.execute("""
+            SELECT users.screen_name, tweets.text, tweets.created_at
+            FROM tweets
+            JOIN users ON tweets.id_users = users.id_users
+            WHERE to_tsvector('english', tweets.text) @@ plainto_tsquery('english', %s)
+            ORDER BY tweets.created_at DESC
+            LIMIT 20;
+        """, (query,))
         messages = cur.fetchall()
         cur.close()
         conn.close()

@@ -1,1 +1,1 @@
-FROM postgres:15
+FROM postgis/postgis:15-3.3
