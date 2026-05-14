@@ -62,8 +62,13 @@ def create_user():
         password_hash = generate_password_hash(password)
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("INSERT INTO app_users (username, password_hash) VALUES (%s, %s);", (username, password_hash))
-        conn.commit()
+        try:
+            cur.execute("INSERT INTO app_users (username, password_hash) VALUES (%s, %s);", (username, password_hash))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            flash("Username already exists")
+            return render_template("create_user.html")
         cur.close()
         conn.close()
         return redirect(url_for("main.login"))
@@ -95,19 +100,30 @@ def create_message():
 @main.route("/search")
 def search():
     query = request.args.get("q", "")
+    page = request.args.get("page", 1, type=int)
+    offset = (page - 1) * 20
     messages = []
     if query:
         conn = get_db()
         cur = conn.cursor()
         cur.execute("""
-            SELECT users.screen_name, tweets.text, tweets.created_at
+            SELECT
+                users.screen_name,
+                TS_HEADLINE(
+                    'english',
+                    tweets.text,
+                    plainto_tsquery('english', %s),
+                    'StartSel=<mark>, StopSel=</mark>, MaxFragments=2, MinWords=5, MaxWords=15'
+                ),
+                tweets.created_at
             FROM tweets
             JOIN users ON tweets.id_users = users.id_users
             WHERE to_tsvector('english', tweets.text) @@ plainto_tsquery('english', %s)
-            ORDER BY tweets.created_at DESC
-            LIMIT 20;
-        """, (query,))
+            ORDER BY TS_RANK(to_tsvector('english', tweets.text), plainto_tsquery('english', %s)) DESC,
+                     tweets.created_at DESC
+            LIMIT 20 OFFSET %s;
+        """, (query, query, query, offset))
         messages = cur.fetchall()
         cur.close()
         conn.close()
-    return render_template("search.html", messages=messages, query=query)
+    return render_template("search.html", messages=messages, query=query, page=page)

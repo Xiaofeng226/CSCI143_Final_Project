@@ -5,11 +5,23 @@
     <input type="text" name="q" value="{{ query }}" placeholder="Search tweets...">
     <button type="submit">Search</button>
 </form>
+<style>
+    mark { background-color: yellow; font-weight: bold; }
+</style>
 {% for username, text, created_at in messages %}
 <div class="message">
     <span class="username">@{{ username }}</span>
     <span class="timestamp">{{ created_at.strftime('%Y-%m-%d %H:%M') if created_at else '' }}</span>
-    <p>{{ text }}</p>
+    <p>{{ text|safe }}</p>
 </div>
 {% endfor %}
+{% if messages %}
+<br>
+{% if page > 1 %}
+    <a href="/search?q={{ query }}&page={{ page - 1 }}">← Previous</a>
+{% endif %}
+{% if messages|length == 20 %}
+    <a href="/search?q={{ query }}&page={{ page + 1 }}">Next →</a>
+{% endif %}
+{% endif %}
 {% endblock %}
