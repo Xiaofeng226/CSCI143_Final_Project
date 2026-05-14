@@ -82,11 +82,17 @@ def create_message():
         text = request.form["text"]
         conn = get_db()
         cur = conn.cursor()
+        # ensure app user has a corresponding twitter user row
+        cur.execute("""
+            INSERT INTO users (id_users, screen_name)
+            VALUES (%s, %s)
+            ON CONFLICT (id_users) DO NOTHING;
+        """, (session["user_id"], session["username"]))
         cur.execute("""
             INSERT INTO tweets (id_tweets, id_users, created_at, text)
             VALUES (
                 (SELECT COALESCE(MAX(id_tweets), 0) + 1 FROM tweets),
-                (SELECT id_users FROM app_users WHERE id = %s),
+                %s,
                 NOW(),
                 %s
             );
