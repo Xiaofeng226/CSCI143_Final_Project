@@ -80,3 +80,9 @@ CREATE TABLE IF NOT EXISTS app_users (
     id_users BIGINT REFERENCES users(id_users),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS tweets_text_trgm
+    ON tweets
+    USING GIN(text gin_trgm_ops);

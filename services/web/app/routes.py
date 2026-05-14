@@ -103,9 +103,12 @@ def search():
     page = request.args.get("page", 1, type=int)
     offset = (page - 1) * 20
     messages = []
+    suggestion = None
     if query:
         conn = get_db()
         cur = conn.cursor()
+
+        # main FTS search
         cur.execute("""
             SELECT
                 users.screen_name,
@@ -124,6 +127,28 @@ def search():
             LIMIT 20 OFFSET %s;
         """, (query, query, query, offset))
         messages = cur.fetchall()
+
+        # spelling suggestion using pg_trgm if no results found
+        if not messages:
+            words = query.split()
+            suggested_words = []
+            for word in words:
+                cur.execute("""
+                    SELECT word
+                    FROM ts_stat('SELECT to_tsvector(''simple'', text) FROM tweets')
+                    WHERE word %% %s
+                    ORDER BY similarity(word, %s) DESC
+                    LIMIT 1;
+                """, (word, word))
+                result = cur.fetchone()
+                if result and result[0].lower() != word.lower():
+                    suggested_words.append(result[0].strip('.,!?'))
+                else:
+                    suggested_words.append(word)
+            suggestion = ' '.join(suggested_words)
+            if suggestion.lower() == query.lower():
+                suggestion = None
+
         cur.close()
         conn.close()
-    return render_template("search.html", messages=messages, query=query, page=page)
+    return render_template("search.html", messages=messages, query=query, page=page, suggestion=suggestion)

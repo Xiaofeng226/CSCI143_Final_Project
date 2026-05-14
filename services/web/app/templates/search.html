@@ -7,7 +7,12 @@
 </form>
 <style>
     mark { background-color: yellow; font-weight: bold; }
+    .suggestion { color: gray; margin: 8px 0; }
+    .suggestion a { color: #1da1f2; text-decoration: none; }
 </style>
+{% if suggestion %}
+    <p class="suggestion">Did you mean: <a href="/search?q={{ suggestion }}">{{ suggestion }}</a>?</p>
+{% endif %}
 {% for username, text, created_at in messages %}
 <div class="message">
     <span class="username">@{{ username }}</span>
