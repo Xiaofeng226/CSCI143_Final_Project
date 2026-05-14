@@ -1,7 +1,8 @@
 #!/bin/sh
+DB=${1:-postgresql://twitter:twitter@localhost:9876/twitter_dev}
 echo "========================================"
-echo "Loading tweets..."
+echo "Loading tweets into $DB..."
 echo "========================================"
 time python3 load_tweets.py \
-    --db=postgresql://twitter:twitter@localhost:9876/twitter_dev \
-    --inputs /data/Twitter\ dataset/geoTwitter20-01-01.zip
+    --db=$DB \
+    --inputs data/sample_small.json

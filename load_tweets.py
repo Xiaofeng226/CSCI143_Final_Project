@@ -213,13 +213,22 @@ if __name__ == '__main__':
     engine = sqlalchemy.create_engine(args.db, connect_args={'application_name': 'load_tweets.py'})
 
     with engine.connect() as connection:
-        for filename in sorted(args.inputs, reverse=True):
-            with zipfile.ZipFile(filename, 'r') as archive:
-                print(datetime.datetime.now(), filename)
-                for subfilename in sorted(archive.namelist(), reverse=True):
-                    with io.TextIOWrapper(archive.open(subfilename)) as f:
-                        for i, line in enumerate(f):
-                            tweet = json.loads(line)
-                            insert_tweet(connection, tweet)
-                            if i % args.print_every == 0:
-                                print(datetime.datetime.now(), filename, subfilename, 'i=', i, 'id=', tweet['id'])
+        for filename in args.inputs:
+            print(datetime.datetime.now(), filename)
+            # handle both zip files and plain json files
+            if filename.endswith('.zip'):
+                with zipfile.ZipFile(filename, 'r') as archive:
+                    for subfilename in sorted(archive.namelist(), reverse=True):
+                        with io.TextIOWrapper(archive.open(subfilename)) as f:
+                            for i, line in enumerate(f):
+                                tweet = json.loads(line)
+                                insert_tweet(connection, tweet)
+                                if i % args.print_every == 0:
+                                    print(datetime.datetime.now(), filename, subfilename, 'i=', i, 'id=', tweet['id'])
+            else:
+                with open(filename) as f:
+                    for i, line in enumerate(f):
+                        tweet = json.loads(line)
+                        insert_tweet(connection, tweet)
+                        if i % args.print_every == 0:
+                            print(datetime.datetime.now(), filename, 'i=', i, 'id=', tweet['id'])
