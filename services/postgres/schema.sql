@@ -1,4 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS rum;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE TABLE IF NOT EXISTS urls (
     id_urls BIGSERIAL PRIMARY KEY,
@@ -69,9 +71,13 @@ CREATE TABLE IF NOT EXISTS tweet_media (
     PRIMARY KEY (id_tweets, id_urls)
 );
 
-CREATE INDEX IF NOT EXISTS tweets_text_fts
+CREATE INDEX IF NOT EXISTS tweets_text_rum
     ON tweets
-    USING GIN(to_tsvector('english', text));
+    USING RUM(to_tsvector('english', text));
+
+CREATE INDEX IF NOT EXISTS tweets_text_trgm
+    ON tweets
+    USING GIN(text gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS app_users (
     id SERIAL PRIMARY KEY,
@@ -80,9 +86,3 @@ CREATE TABLE IF NOT EXISTS app_users (
     id_users BIGINT REFERENCES users(id_users),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-CREATE INDEX IF NOT EXISTS tweets_text_trgm
-    ON tweets
-    USING GIN(text gin_trgm_ops);

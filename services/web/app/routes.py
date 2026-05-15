@@ -1,6 +1,6 @@
 import psycopg2
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 
 main = Blueprint("main", __name__)
@@ -47,8 +47,10 @@ def login():
 
 @main.route("/logout")
 def logout():
+    response = make_response(redirect(url_for("main.home")))
+    response.delete_cookie('session')
     session.clear()
-    return redirect(url_for("main.home"))
+    return response
 
 @main.route("/create_user", methods=["GET", "POST"])
 def create_user():
